@@ -7,7 +7,6 @@ output:
     css: "styles.css"
     toc: true
     toc_float: true
-runtime: shiny
 ---
 
 <div class="logo-container">
@@ -36,7 +35,6 @@ palette = c("#00618a","#0691c4","#00c4ff") #palette from PUT logo
 ```
 
 ```{r load-data,echo=FALSE}
-setwd("C:/Users/Jake/Desktop/developer_surveys")
 data2018 <- read.csv("survey_results_2018.csv")
 data2023 <- read.csv("survey_results_2023.csv")
 
@@ -52,11 +50,103 @@ dropna <- function(x) {
   return(x[!is.na(x)])
 }
 ```
-[WIP] This document is a data visualization of exploratory data analysis of the "Stack Overflow developer surveys" conducted in 2018 and 2023. We compare the different trends and shifts in the way the developers seek help with their everyday tasks. 
+
+> [WIP] This document is a data visualization of exploratory data analysis of the "Stack Overflow developer surveys" conducted in 2018 and 2023. We compare the different trends and shifts in the way the developers seek help with their everyday tasks. 
+
+## Developer profile {.tabset}
+
+### Country
+
+### Age
+
+### Education
+
+```{r education, echo=FALSE, warning=FALSE}
+  data2018$FormalEducation <- gsub("I never completed any formal education", NA, data2018$FormalEducation)
+  data2018$FormalEducation <- gsub("Some college/university study without earning a degree", NA, data2018$FormalEducation)
+  data2018$FormalEducation <- gsub("Professional degree .JD, MD, etc..", "Professional degree (JD, MD, Ph.D, Ed.D, etc.)", data2018$FormalEducation)
+  data2018$FormalEducation <- gsub("Other doctoral degree .Ph.D, Ed.D., etc..", "Professional degree (JD, MD, Ph.D, Ed.D, etc.)", data2018$FormalEducation)
+  data2023$EdLevel <- gsub("Something else", NA, data2023$EdLevel)
+  data2023$EdLevel <- gsub("Some college/university study without earning a degree", NA, data2023$EdLevel)
+  
+  data2018$FormalEducation <- gsub("Associate degree", "Associate degree (A.A., A.S., etc.)", data2018$FormalEducation)
+  education_2018 <- data2018 %>%
+    select(FormalEducation) %>%
+    separate_rows(FormalEducation,sep=";") %>%
+    group_by(FormalEducation) %>%
+    summarise(count = n()) %>%
+    mutate(perc = round(count*100/sum(count),2)) %>%
+    drop_na()
+  
+  education_2018$Year <- "2018"
+  
+  education_2023 <- data2023 %>%
+    select(EdLevel) %>%
+    separate_rows(EdLevel,sep=";") %>%
+    group_by(EdLevel) %>%
+    summarise(count = n()) %>%
+    mutate(perc = round(count*100/sum(count),2)) %>%
+    drop_na()
+  
+  education_2023$Year <- "2023"
+  colnames(education_2023)[colnames(education_2023) == "EdLevel"] <- "FormalEducation"
+  
+  education_both <- rbind(education_2018, education_2023)
+  
+  education_both$FormalEducation <- gsub("Bachelor’s degree .BA, BS, B.Eng., etc..", "Bachelor’s degree (B.A., B.S., B.Eng., etc.)", education_both$FormalEducation)
+  education_both$FormalEducation <- gsub("Master’s degree .MA, MS, M.Eng., MBA, etc..", "Master’s degree (M.A., M.S., M.Eng., MBA, etc.)", education_both$FormalEducation)
+  education_both$FormalEducation <- gsub("Secondary school .e.g. American high school, German Realschule or Gymnasium, etc..","Secondary school", education_both$FormalEducation)
+  plot_ly(education_both,
+          x = ~FormalEducation,
+          y = ~perc,
+          type = 'bar',
+          color = ~Year,
+          frame = ~Year,
+          colors = palette,
+          animation_frame = ~Year) %>%
+    layout(title = "Formal Education",
+           xaxis = list(title = "Years of Experience"),
+           yaxis = list(title = "Percentage of Respondents"),
+           hovermode = "x",
+           showlegend = FALSE)%>% 
+    animation_button(visible=F) %>%
+    animation_slider(yanchor="bottom",y=1,currentvalue = list(visible=F))
+```
+
+### Years coding
+
+```{r years_coding, echo=FALSE, warning=FALSE}
+coding = data2018$YearsCoding
+procoding = data2018$YearsCodingProf
+
+order <- c("0-2 years", "3-5 years", "6-8 years", "9-11 years", "12-14 years", "15-17 years", "18-20 years", "21-23 years", "24-26 years", "27-29 years", "30 or more years")
+
+coding_df <- data.frame(Category = c(coding, procoding),
+                        Type = c(rep("Usual coding", length(coding)), rep("Professional coding", length(procoding))))
+
+coding_counts <- coding_df %>%
+  group_by(Category, Type) %>%
+  summarise(count = n(), .groups = "drop_last") %>%
+  mutate(Category = factor(Category, levels = order))
+
+plot_ly(coding_counts, x = ~Category, y = ~count, type = 'bar', color = ~Type, frame = ~Type,
+        colors = palette,
+        animation_frame = ~Type) %>%
+  layout(title = "Years of Coding Experience",
+         xaxis = list(title = "Years of Experience"),
+         yaxis = list(title = "Count"),
+         showlegend = FALSE)
+```
+
+### Developer type
+
+### Employment status
+
+### Developer
 
 ## Stack Overflow visits frequency over time 
 
-[Add short description]
+> [Add short description]
 You can embed Shiny inputs and outputs in your document. Outputs are automatically updated whenever inputs change.  This demonstrates how a standard R plot can be made interactive by wrapping it in the Shiny `renderPlot` function. The `selectInput` and `sliderInput` functions create the input widgets used to drive the plot.
 
 ```{r SO_visit_freq, echo=FALSE, out.width="100%"}
@@ -92,7 +182,9 @@ ggplotly(plot_visit_freq,tooltip = c("text"))
 ```
 
 ## AI-Powered tools usage among developers in 2023
-Github Autopilot reigns supreme among AI-powered tools in 2023. The top 5 AI-powered tools used by developers in 2023 are shown below.
+
+> Github Autopilot reigns supreme among AI-powered tools in 2023. The top 5 AI-powered tools used by developers in 2023 are shown below.
+
 ```{r ai-tools-usage,echo=FALSE,message=FALSE, warning=FALSE,out.width="100%"}
 AI_currently_used <- data2023 %>%
   select(AIDevHaveWorkedWith) %>%
@@ -135,7 +227,9 @@ ggplotly(plot_AI_use,tooltip = c("text"))
 ```
 
 ## The most popular programming languages in 2018 and 2023
-The most popular programming languages among developers in 2018 and 2023 are shown below. The popularity of programming languages has shifted over time. 
+
+> The most popular programming languages among developers in 2018 and 2023 are shown below. The popularity of programming languages has shifted over time. 
+
 ```{r popular_languages, echo=FALSE, message=FALSE, warning=FALSE, out.width="100%"}
 inputPanel(
   selectInput("top_or_bottom_languages", "Ranking", c("Top 10", "Bottom 10")),
@@ -207,10 +301,12 @@ grid.arrange(
 })
 ```
 
-## Wages comparison between 2018 and 2023 by developer positions.
-The wages of developers have increased over time. The wages of developers in 2018 and 2023 are compared below. 
+## Wages comparison between 2018 and 2023 by developer positions. {.tabset}
 
-### Year 2018
+> The wages of developers have increased over time. The wages of developers in 2018 and 2023 are compared below. 
+
+### Year 2018 
+
 ```{r devtype_profits_2018,echo=FALSE,message=FALSE, warning=FALSE, out.width="100%"}
 inputPanel(
   selectInput("top_or_bottom_2018", "Ranking", c("Top 10", "Bottom 10")),
@@ -250,7 +346,9 @@ plot_salary_2018 <- ggplot(devtype_median_salary_2018,
 ggplotly(plot_salary_2018,tooltip = c("text"))
 })
 ```
+
 ### Year 2023
+
 ```{r devtype_profits_2023,echo=FALSE,message=FALSE, warning=FALSE, out.width="100%"}
 inputPanel(
   selectInput("top_or_bottom_2023", "Ranking", c("Top 10", "Bottom 10")),
@@ -289,21 +387,4 @@ ggplotly(plot_salary_2023,tooltip = c("text"))
 })
 ```
 
-## Embedded Application
 
-It's also possible to embed an entire Shiny application within an R Markdown document using the `shinyAppDir` function. This example embeds a Shiny application located in another directory:
-
-```{r tabsets, echo=FALSE}
-shinyAppDir(
-  system.file("examples/06_tabsets", package = "shiny"),
-  options = list(
-    width = "100%", height = 550
-  )
-)
-```
-
-Note the use of the `height` parameter to determine how much vertical space the embedded application should occupy.
-
-You can also use the `shinyApp` function to define an application inline rather then in an external directory.
-
-In all of R code chunks above the `echo = FALSE` attribute is used. This is to prevent the R code within the chunk from rendering in the document alongside the Shiny components.
