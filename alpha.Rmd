@@ -347,34 +347,34 @@ x_order <- c("Multiple times per day", "Daily or almost daily", "A few times per
 
 grouped2018 <- group_by(data2018,StackOverflowVisit) %>%
   summarise(count = n()) %>% 
-  mutate(freq = count/sum(count), Percentage = sprintf("%.2f%%",round(100*freq,2))) %>%
+  mutate(freq = count/sum(count),perc = freq*100, Percentage = sprintf("%.2f%%",round(100*freq,2))) %>%
   na.omit()
 
 grouped2018$Year <- "2018"
 
 grouped2023 <- group_by(data2023,StackOverflowVisit) %>%
   summarise(count = n()) %>%
-  mutate(freq = count/sum(count), Percentage = sprintf("%.2f%%",round(100*freq,2))) %>%
+  mutate(freq = count/sum(count),perc = freq*100, Percentage = sprintf("%.2f%%",round(100*freq,2))) %>%
   na.omit()
 
 grouped2023$Year <- "2023"
 
 grouped_both <- rbind(grouped2018, grouped2023)
 
-plot_visit_freq <- ggplot(grouped_both, aes(x=StackOverflowVisit, y=freq, fill=Year, text=paste(Percentage))) +
+plot_visit_freq <- ggplot(grouped_both, aes(x=StackOverflowVisit, y=perc, fill=Year, text=paste(Percentage))) +
   geom_bar(stat="identity", position="dodge") +
   scale_x_discrete(limits = x_order) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
   labs(title = "Stack Overflow Visit Frequency Over Time",
        x = "Visit Frequency",
-       y = "Proportion",
+       y = "Percentage of respondents",
        fill = "Year") + 
   scale_fill_manual(values=palette)
 
 ggplotly(plot_visit_freq,tooltip = c("text"))
 ```
 
-## AI-Powered tools usage among developers in 2023
+## AI-Powered tools usage among respondents in 2023
 
 > Developers quickly adopted their new AI tools. Among them, Github Copilot reigns supreme, even though there are free alternatives to it. The top 5 AI-powered tools used by developers in 2023 are shown below.
 
@@ -403,16 +403,18 @@ colnames(AI_want_to_use)[colnames(AI_want_to_use) == "AIDevWantToWorkWith"] <- "
 
 AI_both <- rbind(AI_currently_used,AI_want_to_use)
 
-AI_both <- AI_both %>% mutate(perc = paste(round(100*freq,2),"%"))
+AI_both <- AI_both %>% mutate(Percentage = paste(round(100*freq,2),"%"))
 
 AI_both <- AI_both %>% filter(Tech %in% head(AI_currently_used,5)$Tech)
 
-plot_AI_use <- ggplot(AI_both, aes(x=reorder(Tech,-freq), y=freq, fill=State, text=paste(perc))) +
+AI_both <- AI_both %>% mutate(perc = freq*100)
+
+plot_AI_use <- ggplot(AI_both, aes(x=reorder(Tech,-perc), y=perc, fill=State, text=paste(Percentage))) +
   geom_bar(stat="identity", position="dodge") +
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
   labs(title = "Top 5 AI-Powered Development Tools In 2023",
        x = "AI-Powered Tool",
-       y = "Proportion of developers",
+       y = "Percentage of respondents",
        fill = "State") + 
   scale_fill_manual(values=palette)
 
@@ -431,7 +433,10 @@ languages_2018 <- data2018 %>%
   group_by(LanguageWorkedWith) %>%
   summarise(count = n()) %>%
   mutate(freq = count / length(na.omit(data2018$LanguageWorkedWith))) %>%
-  na.omit()%>% arrange(desc(freq)) %>% head(10)
+  na.omit() %>%
+  arrange(desc(freq)) %>%
+  head(10) %>%
+  mutate(perc=freq*100)
 
 languages_2023 <- data2023 %>%
   select(LanguageWorkedWith) %>%
@@ -439,22 +444,25 @@ languages_2023 <- data2023 %>%
   group_by(LanguageWorkedWith) %>%
   summarise(count = n()) %>%
   mutate(freq = count / length(na.omit(data2023$LanguageWorkedWith))) %>%
-  na.omit()%>% arrange(desc(freq)) %>% head(10)
+  na.omit() %>%
+  arrange(desc(freq)) %>% 
+  head(10) %>% 
+  mutate(perc=freq*100)
 
-plot2018 <- ggplot(languages_2018, aes(x=reorder(LanguageWorkedWith, -freq), y=freq)) +
+plot2018 <- ggplot(languages_2018, aes(x=reorder(LanguageWorkedWith, -freq), y=perc)) +
   geom_bar(stat="identity", fill=palette[1]) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
-  scale_y_continuous(breaks = seq(0, 0.75, 0.25)) + 
-  coord_cartesian(ylim = c(0, 0.75)) + 
+  scale_y_continuous(breaks = seq(0, 75, 25)) + 
+  coord_cartesian(ylim = c(0, 75)) + 
   labs(title = "2018",
        x = "Language",
-       y = "Proportion of developers using")
+       y = "Percentage of respondents using")
 
-plot2023 <- ggplot(languages_2023, aes(x=reorder(LanguageWorkedWith, -freq), y=freq)) +
+plot2023 <- ggplot(languages_2023, aes(x=reorder(LanguageWorkedWith, -freq), y=perc)) +
   geom_bar(stat="identity", fill=palette[2]) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
-  scale_y_continuous(breaks = seq(0, 0.75, 0.25)) + 
-  coord_cartesian(ylim = c(0, 0.75)) + 
+  scale_y_continuous(breaks = seq(0, 75, 25)) + 
+  coord_cartesian(ylim = c(0, 75)) + 
   labs(title = "2023",
        x = "Language",
        y = "") 
@@ -463,13 +471,8 @@ plot2023 <- ggplot(languages_2023, aes(x=reorder(LanguageWorkedWith, -freq), y=f
 grid.arrange(
   plot2018, 
   plot2023, 
-  ncol=2,
-  top=text_grob(
-    paste("Top 10 programming languages in 2018 and 2023"), 
-    color="black", 
-    face="bold", 
-    size=18
-    )
+  ncol=2
+  
   )
 ```
 
@@ -485,13 +488,14 @@ devtype_median_salary_2018 <- data2018 %>%
   separate_rows(DevType, sep = ";") %>%
   na.omit() %>%
   group_by(DevType) %>%
-  summarise(median_salary = round(median(ConvertedSalary, na.rm = TRUE),2))%>% arrange(desc(median_salary)) %>% head(10)
+  summarise(median_salary = round(median(ConvertedSalary, na.rm = TRUE),0))%>% arrange(desc(median_salary)) %>% head(10)
 
-devtype_median_salary_2018$DevType <- gsub("C-Suite executive .CEO, CTO, etc..","C-Suite executive", devtype_median_salary_2018$DevType)
+devtype_median_salary_2018$DevType <- gsub("C-suite executive .CEO, CTO, etc..","C-Suite executive", devtype_median_salary_2018$DevType)
+
 plot_salary_2018 <- ggplot(devtype_median_salary_2018, 
                            aes(x=reorder(DevType, -median_salary), 
                                y=median_salary,
-                               text=paste('Yearly Median: $',formatC(median_salary, big.mark=',', format = 'f')))) +
+                               text=paste('Yearly Median: $',format(median_salary, big.mark=',', nsmall=0)))) +
   geom_bar(stat="identity", fill=palette[1]) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
   scale_y_continuous(labels = scales::dollar) +
@@ -513,12 +517,14 @@ devtype_median_salary_2023 <- data2023 %>%
   separate_rows(DevType, sep = ";") %>%
   na.omit() %>%
   group_by(DevType) %>%
-  summarise(median_salary = round(median(ConvertedCompYearly, na.rm = TRUE),2))%>% arrange(desc(median_salary)) %>% head(10)
+  summarise(median_salary = round(median(ConvertedCompYearly, na.rm = TRUE),0))%>% arrange(desc(median_salary)) %>% head(10)
+
 devtype_median_salary_2023$DevType <- gsub("C-Suite executive .CEO, CTO, etc..","C-Suite executive", devtype_median_salary_2023$DevType)
+
 plot_salary_2023 <- ggplot(devtype_median_salary_2023, 
                            aes(x=reorder(DevType, -median_salary), 
                                y=median_salary,
-                               text=paste('Yearly Median: $',formatC(median_salary, big.mark=',', format = 'f')))) +
+                               text=paste('Yearly Median: $',format(median_salary, big.mark=',',nsmall=0)))) +
   geom_bar(stat="identity", fill=palette[2]) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
   scale_y_continuous(labels = scales::dollar) +
