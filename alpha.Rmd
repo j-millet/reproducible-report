@@ -46,9 +46,7 @@ colnames(data2023)[colnames(data2023) == "LanguageHaveWorkedWith"] <- "LanguageW
 data2018$LanguageWorkedWith <- gsub("HTML;CSS", "HTML/CSS", data2018$LanguageWorkedWith)
 data2023$LanguageWorkedWith <- gsub("Bash.Shell .all shells.", "Bash/Shell",data2023$LanguageWorkedWith)
 data2023$DevType <- gsub("Senior Executive .C-Suite, VP, etc..", "C-Suite executive (CEO, CTO, etc.)", data2023$DevType)
-dropna <- function(x) {
-  return(x[!is.na(x)])
-}
+
 ```
 
 > [WIP] This document is a data visualization of exploratory data analysis of the "Stack Overflow developer surveys" conducted in 2018 and 2023. We compare the different trends and shifts in the way the developers seek help with their everyday tasks. 
@@ -57,9 +55,53 @@ dropna <- function(x) {
 
 ### Age
 
+```{r age, echo=FALSE, warning=FALSE, out.width="100%"}
+age_2018 <- data2018 %>%
+  select(Age) %>%
+  group_by(Age) %>%
+  summarise(count = n()) %>%
+  mutate(perc = round(count*100/sum(count),2))%>% 
+  na.omit()
+
+age_2018$Year <- "2018"
+sum_perc = sum(age_2018$perc)
+age_2018$perc <- age_2018$perc/sum_perc*100
+
+
+age_2023 <- data2023 %>%
+  select(Age) %>%
+  group_by(Age) %>%
+  summarise(count = n()) %>%
+  mutate(perc = round(count*100/sum(count),2)) %>%
+  na.omit()
+sum_perc = sum(age_2023$perc)
+age_2023$perc <- age_2023$perc/sum_perc*100
+
+age_2023$Year <- "2023"
+age_2023$Age <- gsub("-", " - ", age_2023$Age)
+age_both <- rbind(age_2018, age_2023)
+age_both$Age <- gsub("Prefer not to say", NA, age_both$Age)
+age_both <- age_both
+
+
+order = c("Under 18 years old", "18 - 24 years old", "25 - 34 years old", "35 - 44 years old", "45 - 54 years old", "55 - 64 years old", "65 years or older")
+age_both$Age <- factor(age_both$Age, levels = order)
+
+plot_ly(age_both, x = ~Age, y = ~perc, type = 'bar', color = ~Year, frame = ~Year,
+        colors = palette,
+        animation_frame = ~Year) %>%
+  layout(title = "Age",
+         xaxis = list(title = "Age"),
+         yaxis = list(title = "Percentage of Respondents"),
+         showlegend = FALSE) %>%
+  animation_button(visible=F) %>%
+  animation_slider(yanchor="bottom",y=1,currentvalue = list(visible=F))
+
+```
+
 ### Education
 
-```{r education, echo=FALSE, warning=FALSE}
+```{r education, echo=FALSE, warning=FALSE, out.width="100%"}
   data2018$FormalEducation <- gsub("I never completed any formal education", NA, data2018$FormalEducation)
   data2018$FormalEducation <- gsub("Some college/university study without earning a degree", NA, data2018$FormalEducation)
   data2018$FormalEducation <- gsub("Professional degree .JD, MD, etc..", "Professional degree (JD, MD, Ph.D, Ed.D, etc.)", data2018$FormalEducation)
@@ -74,9 +116,12 @@ dropna <- function(x) {
     group_by(FormalEducation) %>%
     summarise(count = n()) %>%
     mutate(perc = round(count*100/sum(count),2)) %>%
-    drop_na()
+    na.omit()
   
   education_2018$Year <- "2018"
+  
+  perc_sum = sum(education_2018$perc)
+  education_2018$perc <- education_2018$perc/perc_sum*100
   
   education_2023 <- data2023 %>%
     select(EdLevel) %>%
@@ -84,9 +129,13 @@ dropna <- function(x) {
     group_by(EdLevel) %>%
     summarise(count = n()) %>%
     mutate(perc = round(count*100/sum(count),2)) %>%
-    drop_na()
+    na.omit()
   
   education_2023$Year <- "2023"
+  
+  perc_sum = sum(education_2023$perc)
+  education_2023$perc <- education_2023$perc/perc_sum*100
+  
   colnames(education_2023)[colnames(education_2023) == "EdLevel"] <- "FormalEducation"
   
   education_both <- rbind(education_2018, education_2023)
@@ -95,12 +144,16 @@ dropna <- function(x) {
   education_both$FormalEducation <- gsub("Master’s degree .MA, MS, M.Eng., MBA, etc..", "Master’s degree (M.A., M.S., M.Eng., MBA, etc.)", education_both$FormalEducation)
   education_both$FormalEducation <- gsub("Secondary school .e.g. American high school, German Realschule or Gymnasium, etc..","Secondary school", education_both$FormalEducation)
   
+  education_both$FormalEducation <- gsub("Associate degree .A.A., A.S., etc..", "Associate degree", education_both$FormalEducation)
+  education_both$FormalEducation <- gsub("Bachelor’s degree .B.A., B.S., B.Eng., etc..", "Bachelor’s degree", education_both$FormalEducation)
+  education_both$FormalEducation <- gsub("Master’s degree .M.A., M.S., M.Eng., MBA, etc..", "Master’s degree", education_both$FormalEducation)
+  education_both$FormalEducation <- gsub("Professional degree .JD, MD, Ph.D, Ed.D, etc..", "Professional degree", education_both$FormalEducation)
 order <- c("Primary/elementary school",
            "Secondary school",
-           "Associate degree (A.A., A.S., etc.)",
-           "Bachelor’s degree (B.A., B.S., B.Eng., etc.)",
-           "Master’s degree (M.A., M.S., M.Eng., MBA, etc.)",
-           "Professional degree (JD, MD, Ph.D, Ed.D, etc.)")
+           "Associate degree",
+           "Bachelor’s degree",
+           "Master’s degree",
+           "Professional degree")
 
 education_both <- education_both %>% mutate(FormalEducation = factor(FormalEducation, levels = order))
 
@@ -125,7 +178,7 @@ education_both <- education_both %>% mutate(FormalEducation = factor(FormalEduca
 
 #### 2018
 
-```{r years_coding_2018, echo=FALSE, warning=FALSE}
+```{r years_coding_2018, echo=FALSE, warning=FALSE, out.width="100%"}
 
 order <- c("0-2 years", "3-5 years", "6-8 years", "9-11 years", "12-14 years", "15-17 years", "18-20 years", "21-23 years", "24-26 years", "27-29 years", "30 or more years")
 
@@ -134,7 +187,7 @@ coding_usual_2018 <- data2018 %>%
   group_by(YearsCoding) %>%
   summarise(count = n()) %>%
   mutate(perc = round(count*100/sum(count),2)) %>%
-  drop_na()
+  na.omit()
 
 coding_usual_2018$Status <- "Total coding"
 coding_pro_2018 <- data2018 %>%
@@ -142,7 +195,7 @@ coding_pro_2018 <- data2018 %>%
   group_by(YearsCodingProf) %>%
   summarise(count = n()) %>%
   mutate(perc = round(count*100/sum(count),2)) %>%
-  drop_na()
+  na.omit()
 
 coding_pro_2018$Status <- "Professional coding"
 colnames(coding_pro_2018)[colnames(coding_pro_2018) == "YearsCodingProf"] <- "YearsCoding"
@@ -164,7 +217,7 @@ plot_ly(coding_both_2018, x = ~YearsCoding, y = ~perc, type = 'bar', color = ~St
 
 #### 2023
 
-```{r years_coding_2023, echo=FALSE, warning=FALSE}
+```{r years_coding_2023, echo=FALSE, warning=FALSE, out.width="100%"}
 discretize <- function(x){
   if (is.na(x)) return(NA)
   if (x >0 & x <= 2) return("0-2 years")
@@ -190,7 +243,7 @@ coding_usual_2023 <- data2023 %>%
   group_by(YearsCode) %>%
   summarise(count = n()) %>%
   mutate(perc = round(count*100/sum(count),2)) %>%
-  drop_na()
+  na.omit()
 
 coding_usual_2023$Status <- "Total coding"
 
@@ -199,7 +252,7 @@ coding_pro_2023 <- data2023 %>%
   group_by(YearsCodePro) %>%
   summarise(count = n()) %>%
   mutate(perc = round(count*100/sum(count),2)) %>%
-  drop_na()
+  na.omit()
 
 coding_pro_2023$Status <- "Professional coding"
 colnames(coding_pro_2023)[colnames(coding_pro_2023) == "YearsCodePro"] <- "YearsCode"
@@ -219,7 +272,7 @@ plot_ly(coding_both_2023, x = ~YearsCode, y = ~perc, type = 'bar', color = ~Stat
 
 ```
 ### Employment status
-```{r employment_status, echo=FALSE, warning=FALSE}
+```{r employment_status, echo=FALSE, warning=FALSE, out.width="100%"}
 data2018$Employment <- gsub(",", "", data2018$Employment)
 employment_2018 <- data2018 %>%
   select(Employment) %>%
@@ -227,7 +280,7 @@ employment_2018 <- data2018 %>%
   group_by(Employment) %>%
   summarise(count = n()) %>%
   mutate(perc = round(count*100/sum(count),2)) %>%
-  drop_na()
+  na.omit()
 
 employment_2018$Year <- "2018"
 
@@ -244,7 +297,7 @@ employment_2023 <- data2023 %>%
                            "Retired")) %>%
   summarise(count = n()) %>%
   mutate(perc = round(count*100/sum(count),2)) %>%
-  drop_na()
+  na.omit()
 
 employment_2023$Year <- "2023"
 
@@ -278,14 +331,14 @@ x_order <- c("Multiple times per day", "Daily or almost daily", "A few times per
 grouped2018 <- group_by(data2018,StackOverflowVisit) %>%
   summarise(count = n()) %>% 
   mutate(freq = count/sum(count), Percentage = sprintf("%.2f%%",round(100*freq,2))) %>%
-  drop_na()
+  na.omit()
 
 grouped2018$Year <- "2018"
 
 grouped2023 <- group_by(data2023,StackOverflowVisit) %>%
   summarise(count = n()) %>%
   mutate(freq = count/sum(count), Percentage = sprintf("%.2f%%",round(100*freq,2))) %>%
-  drop_na()
+  na.omit()
 
 grouped2023$Year <- "2023"
 
@@ -308,12 +361,12 @@ ggplotly(plot_visit_freq,tooltip = c("text"))
 
 > Github Autopilot reigns supreme among AI-powered tools in 2023. The top 5 AI-powered tools used by developers in 2023 are shown below.
 
-```{r ai-tools-usage,echo=FALSE,message=FALSE, warning=FALSE,out.width="100%"}
+```{r ai-tools-usage,echo=FALSE,message=FALSE, warning=FALSE, out.width="100%"}
 AI_currently_used <- data2023 %>%
   select(AIDevHaveWorkedWith) %>%
   separate_rows(AIDevHaveWorkedWith,sep=";") %>%
   group_by(AIDevHaveWorkedWith) %>%
-  drop_na() %>%
+  na.omit() %>%
   summarise(freq = n()/length(data2023$AIDevHaveWorkedWith)) %>% 
   arrange(desc(freq))
 
@@ -324,7 +377,7 @@ AI_want_to_use <- data2023 %>%
   select(AIDevWantToWorkWith) %>%
   separate_rows(AIDevWantToWorkWith,sep=";") %>%
   group_by(AIDevWantToWorkWith) %>%
-  drop_na() %>%
+  na.omit() %>%
   summarise(freq = n()/length(data2023$AIDevHaveWorkedWith)) %>% 
   arrange(desc(freq))
 
@@ -360,16 +413,16 @@ languages_2018 <- data2018 %>%
   separate_rows(LanguageWorkedWith, sep = ";") %>%
   group_by(LanguageWorkedWith) %>%
   summarise(count = n()) %>%
-  mutate(freq = count / length(dropna(data2018$LanguageWorkedWith))) %>%
-  drop_na()%>% arrange(desc(freq)) %>% head(10)
+  mutate(freq = count / length(na.omit(data2018$LanguageWorkedWith))) %>%
+  na.omit()%>% arrange(desc(freq)) %>% head(10)
 
 languages_2023 <- data2023 %>%
   select(LanguageWorkedWith) %>%
   separate_rows(LanguageWorkedWith, sep = ";") %>%
   group_by(LanguageWorkedWith) %>%
   summarise(count = n()) %>%
-  mutate(freq = count / length(dropna(data2023$LanguageWorkedWith))) %>%
-  drop_na()%>% arrange(desc(freq)) %>% head(10)
+  mutate(freq = count / length(na.omit(data2023$LanguageWorkedWith))) %>%
+  na.omit()%>% arrange(desc(freq)) %>% head(10)
 
 plot2018 <- ggplot(languages_2018, aes(x=reorder(LanguageWorkedWith, -freq), y=freq)) +
   geom_bar(stat="identity", fill=palette[1]) +
@@ -413,7 +466,7 @@ grid.arrange(
 devtype_median_salary_2018 <- data2018 %>%
   select(DevType,ConvertedSalary) %>%
   separate_rows(DevType, sep = ";") %>%
-  drop_na() %>%
+  na.omit() %>%
   group_by(DevType) %>%
   summarise(median_salary = round(median(ConvertedSalary, na.rm = TRUE),2))%>% arrange(desc(median_salary)) %>% head(10)
 
@@ -440,7 +493,7 @@ ggplotly(plot_salary_2018,tooltip = c("text"))
 devtype_median_salary_2023 <- data2023 %>%
   select(DevType,ConvertedCompYearly) %>%
   separate_rows(DevType, sep = ";") %>%
-  drop_na() %>%
+  na.omit() %>%
   group_by(DevType) %>%
   summarise(median_salary = round(median(ConvertedCompYearly, na.rm = TRUE),2))%>% arrange(desc(median_salary)) %>% head(10)
 
