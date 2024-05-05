@@ -69,7 +69,7 @@ age_2018 <- data2018 %>%
 
 age_2018$Year <- "2018"
 sum_perc = sum(age_2018$perc)
-age_2018$perc <- age_2018$perc/sum_perc*100
+age_2018$perc <- round(age_2018$perc/sum_perc*100,2)
 
 
 age_2023 <- data2023 %>%
@@ -79,7 +79,7 @@ age_2023 <- data2023 %>%
   mutate(perc = round(count*100/sum(count),2)) %>%
   na.omit()
 sum_perc = sum(age_2023$perc)
-age_2023$perc <- age_2023$perc/sum_perc*100
+age_2023$perc <- round(age_2023$perc/sum_perc*100,2)
 
 age_2023$Year <- "2023"
 age_2023$Age <- gsub("-", " - ", age_2023$Age)
@@ -97,6 +97,7 @@ plot_ly(age_both, x = ~Age, y = ~perc, type = 'bar', color = ~Year, frame = ~Yea
   layout(title = "Age",
          xaxis = list(title = "Age"),
          yaxis = list(title = "Percentage of Respondents"),
+         hovermode = "x",
          showlegend = FALSE) %>%
   animation_button(visible=F) %>%
   animation_slider(yanchor="bottom",y=1,currentvalue = list(visible=F))
@@ -127,7 +128,7 @@ The trend signals a surge in self-taught programmers (increase in groups without
   education_2018$Year <- "2018"
   
   perc_sum = sum(education_2018$perc)
-  education_2018$perc <- education_2018$perc/perc_sum*100
+  education_2018$perc <- round(education_2018$perc/perc_sum*100,2)
   
   education_2023 <- data2023 %>%
     select(EdLevel) %>%
@@ -140,7 +141,7 @@ The trend signals a surge in self-taught programmers (increase in groups without
   education_2023$Year <- "2023"
   
   perc_sum = sum(education_2023$perc)
-  education_2023$perc <- education_2023$perc/perc_sum*100
+  education_2023$perc <- round(education_2023$perc/perc_sum*100,2)
   
   colnames(education_2023)[colnames(education_2023) == "EdLevel"] <- "FormalEducation"
   
@@ -221,6 +222,7 @@ plot_ly(coding_both_2018, x = ~YearsCoding, y = ~perc, type = 'bar', color = ~St
          xaxis = list(title = "Years of Experience"),
          yaxis = list(title = "Percentage of Respondents",
                       range = list(0, 25)),
+         hovermode = "x",
          showlegend = FALSE) %>%
   animation_button(visible=F) %>%
   animation_slider(yanchor="bottom",y=1.03,currentvalue = list(visible=F))
@@ -280,6 +282,7 @@ plot_ly(coding_both_2023, x = ~YearsCode, y = ~perc, type = 'bar', color = ~Stat
          xaxis = list(title = "Years of Experience"),
          yaxis = list(title = "Percentage of Respondents",
                       range = list(0, 25)),
+         hovermode = "x",
          showlegend = FALSE) %>%
   animation_button(visible=F) %>%
   animation_slider(yanchor="bottom",y=1.03,currentvalue = list(visible=F))
