@@ -69,7 +69,7 @@ age_2018 <- data2018 %>%
 
 age_2018$Year <- "2018"
 sum_perc = sum(age_2018$perc)
-age_2018$perc <- round(age_2018$perc/sum_perc*100,2)
+age_2018$perc <- age_2018$perc/sum_perc*100
 
 
 age_2023 <- data2023 %>%
@@ -79,7 +79,7 @@ age_2023 <- data2023 %>%
   mutate(perc = round(count*100/sum(count),2)) %>%
   na.omit()
 sum_perc = sum(age_2023$perc)
-age_2023$perc <- round(age_2023$perc/sum_perc*100,2)
+age_2023$perc <- age_2023$perc/sum_perc*100
 
 age_2023$Year <- "2023"
 age_2023$Age <- gsub("-", " - ", age_2023$Age)
@@ -97,7 +97,6 @@ plot_ly(age_both, x = ~Age, y = ~perc, type = 'bar', color = ~Year, frame = ~Yea
   layout(title = "Age",
          xaxis = list(title = "Age"),
          yaxis = list(title = "Percentage of Respondents"),
-         hovermode = "x",
          showlegend = FALSE) %>%
   animation_button(visible=F) %>%
   animation_slider(yanchor="bottom",y=1,currentvalue = list(visible=F))
@@ -128,7 +127,7 @@ The trend signals a surge in self-taught programmers (increase in groups without
   education_2018$Year <- "2018"
   
   perc_sum = sum(education_2018$perc)
-  education_2018$perc <- round(education_2018$perc/perc_sum*100,2)
+  education_2018$perc <- education_2018$perc/perc_sum*100
   
   education_2023 <- data2023 %>%
     select(EdLevel) %>%
@@ -141,7 +140,7 @@ The trend signals a surge in self-taught programmers (increase in groups without
   education_2023$Year <- "2023"
   
   perc_sum = sum(education_2023$perc)
-  education_2023$perc <- round(education_2023$perc/perc_sum*100,2)
+  education_2023$perc <- education_2023$perc/perc_sum*100
   
   colnames(education_2023)[colnames(education_2023) == "EdLevel"] <- "FormalEducation"
   
@@ -222,7 +221,6 @@ plot_ly(coding_both_2018, x = ~YearsCoding, y = ~perc, type = 'bar', color = ~St
          xaxis = list(title = "Years of Experience"),
          yaxis = list(title = "Percentage of Respondents",
                       range = list(0, 25)),
-         hovermode = "x",
          showlegend = FALSE) %>%
   animation_button(visible=F) %>%
   animation_slider(yanchor="bottom",y=1.03,currentvalue = list(visible=F))
@@ -282,7 +280,6 @@ plot_ly(coding_both_2023, x = ~YearsCode, y = ~perc, type = 'bar', color = ~Stat
          xaxis = list(title = "Years of Experience"),
          yaxis = list(title = "Percentage of Respondents",
                       range = list(0, 25)),
-         hovermode = "x",
          showlegend = FALSE) %>%
   animation_button(visible=F) %>%
   animation_slider(yanchor="bottom",y=1.03,currentvalue = list(visible=F))
@@ -538,3 +535,7 @@ plot_salary_2023 <- ggplot(devtype_median_salary_2023,
 
 ggplotly(plot_salary_2023,tooltip = c("text"))
 ```
+
+## Summary
+
+Over the last 5 years, the landscape of IT developers has significantly changed. Stack Overflow is no longer the go-to help for every bug encountered. The emergence of AI assistants has clearly changed the way people write code and seek help. Among AI assistants, Github Copilot is clearly the leader. Popular languages have mostly remained the same, but Python and TypeScript have registered serious increases. Another important difference is the large increase in compensation for developers across the board. There's also been a sizeable increase in freelancers and self-taught programmers. It's a great time to be working in tech.
