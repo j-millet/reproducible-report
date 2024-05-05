@@ -49,11 +49,15 @@ data2023$DevType <- gsub("Senior Executive .C-Suite, VP, etc..", "C-Suite execut
 
 ```
 
-> [WIP] This document is a data visualization of exploratory data analysis of the "Stack Overflow developer surveys" conducted in 2018 and 2023. We compare the different trends and shifts in the way the developers seek help with their everyday tasks. 
+> This document is a data visualization of exploratory data analysis of the "Stack Overflow developer surveys" conducted in 2018 and 2023. The main objective of this analysis is to compare the profiles of developers over the years and identify different trends among them. We'll also discover the difference in most popular tools and programming languages.
 
 ## Developer profile {.tabset}
 
+> In order to identify the developer profile we decided to choose four key characteristics: **Age**, **Education**, **Experience** and **Employment**.
+
 ### Age
+
+Here we can see a sizeable decrease in 25-34 years old group while other groups see a slight increase. However, the field is still dominated by people in their 20s and 30s.
 
 ```{r age, echo=FALSE, warning=FALSE, out.width="100%"}
 age_2018 <- data2018 %>%
@@ -100,6 +104,8 @@ plot_ly(age_both, x = ~Age, y = ~perc, type = 'bar', color = ~Year, frame = ~Yea
 ```
 
 ### Education
+
+The trend signals a surge in self-taught programmers (increase in groups without higher education), alongside a slight decline in Bachelor's degree holders. At the same time, there are more people with Master's and Professional degrees. This suggests that people might be pursuing more specialized education.
 
 ```{r education, echo=FALSE, warning=FALSE, out.width="100%"}
   data2018$FormalEducation <- gsub("I never completed any formal education", NA, data2018$FormalEducation)
@@ -176,7 +182,11 @@ education_both <- education_both %>% mutate(FormalEducation = factor(FormalEduca
 
 ### Years coding {.tabset}
 
+Based on the data we can see that there's a lot less people with 0-5 years of professional coding experience in 2023 than in 2018, while other groups have seen a rise. This might suggest that there's significantly less beginner programmers and developers are more "evenly distributed".
+
 #### 2018
+
+Lots of beginner developers, not so many "Seniors".
 
 ```{r years_coding_2018, echo=FALSE, warning=FALSE, out.width="100%"}
 
@@ -209,13 +219,16 @@ plot_ly(coding_both_2018, x = ~YearsCoding, y = ~perc, type = 'bar', color = ~St
         animation_frame = ~Status) %>%
   layout(title = "Years of Coding Experience",
          xaxis = list(title = "Years of Experience"),
-         yaxis = list(title = "Percentage of Respondents"),
+         yaxis = list(title = "Percentage of Respondents",
+                      range = list(0, 25)),
          showlegend = FALSE) %>%
   animation_button(visible=F) %>%
-  animation_slider(yanchor="bottom",y=1,currentvalue = list(visible=F))
+  animation_slider(yanchor="bottom",y=1.03,currentvalue = list(visible=F))
 ```
 
 #### 2023
+
+Uniform landscape, a lot less variation than in 2018. Significantly less beginners and more specialists.
 
 ```{r years_coding_2023, echo=FALSE, warning=FALSE, out.width="100%"}
 discretize <- function(x){
@@ -265,13 +278,18 @@ plot_ly(coding_both_2023, x = ~YearsCode, y = ~perc, type = 'bar', color = ~Stat
         animation_frame = ~Status) %>%
   layout(title = "Years of Coding Experience",
          xaxis = list(title = "Years of Experience"),
-         yaxis = list(title = "Percentage of Respondents"),
+         yaxis = list(title = "Percentage of Respondents",
+                      range = list(0, 25)),
          showlegend = FALSE) %>%
   animation_button(visible=F) %>%
-  animation_slider(yanchor="bottom",y=1,currentvalue = list(visible=F))
+  animation_slider(yanchor="bottom",y=1.03,currentvalue = list(visible=F))
 
 ```
+
 ### Employment status
+
+There's a clear trend showing the rise of "Independent contractors / freelancers" that work on commission.
+
 ```{r employment_status, echo=FALSE, warning=FALSE, out.width="100%"}
 data2018$Employment <- gsub(",", "", data2018$Employment)
 employment_2018 <- data2018 %>%
@@ -322,8 +340,7 @@ plot_ly(employment_both,
 
 ## Stack Overflow visits frequency over time 
 
-> [Add short description]
-You can embed Shiny inputs and outputs in your document. Outputs are automatically updated whenever inputs change.  This demonstrates how a standard R plot can be made interactive by wrapping it in the Shiny `renderPlot` function. The `selectInput` and `sliderInput` functions create the input widgets used to drive the plot.
+> The drastic decline in visit frequency on Stack Overflow is obvious. While it still continues to be a relevant website for developers, the rise of the likes of Github Copilot and ChatGPT clearly changed the way people seek help with their projects.
 
 ```{r SO_visit_freq, echo=FALSE, out.width="100%"}
 x_order <- c("Multiple times per day", "Daily or almost daily", "A few times per week", "A few times per month or weekly", "Less than once per month or monthly")
@@ -359,7 +376,7 @@ ggplotly(plot_visit_freq,tooltip = c("text"))
 
 ## AI-Powered tools usage among developers in 2023
 
-> Github Autopilot reigns supreme among AI-powered tools in 2023. The top 5 AI-powered tools used by developers in 2023 are shown below.
+> Developers quickly adopted their new AI tools. Among them, Github Copilot reigns supreme, even though there are free alternatives to it. The top 5 AI-powered tools used by developers in 2023 are shown below.
 
 ```{r ai-tools-usage,echo=FALSE,message=FALSE, warning=FALSE, out.width="100%"}
 AI_currently_used <- data2023 %>%
@@ -404,7 +421,7 @@ ggplotly(plot_AI_use,tooltip = c("text"))
 
 ## The most popular programming languages in 2018 and 2023
 
-> The most popular programming languages among developers in 2018 and 2023 are shown below. The popularity of programming languages has shifted over time. 
+> The most popular programming languages among developers in 2018 and 2023 are shown below. The popularity of programming languages has shifted over time. We can clearly see that Python is on the rise, probably due to its use in Artificial Intelligence and Machine Learning. PHP disappeared, probably because everyone hates it. TypeScript was warmly welcomed among the developers and it's among the most popular programming languages in 2023.
 
 ```{r popular_languages, echo=FALSE, message=FALSE, warning=FALSE, out.width="100%"}
 
@@ -458,7 +475,7 @@ grid.arrange(
 
 ## Wages comparison between 2018 and 2023 by developer positions. {.tabset}
 
-> The wages of developers have increased over time. The wages of developers in 2018 and 2023 are compared below. 
+> The wages of developers have considerable increased over time across all positions. C-suite executives, for example, have seen a sizeable increase in compensation. The wages of developers in 2018 and 2023 are compared below. 
 
 ### Year 2018 
 
@@ -512,5 +529,3 @@ plot_salary_2023 <- ggplot(devtype_median_salary_2023,
 
 ggplotly(plot_salary_2023,tooltip = c("text"))
 ```
-
-
