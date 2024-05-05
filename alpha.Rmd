@@ -121,9 +121,11 @@ education_both <- education_both %>% mutate(FormalEducation = factor(FormalEduca
     animation_slider(yanchor="bottom",y=1,currentvalue = list(visible=F))
 ```
 
-### Years coding
+### Years coding {.tabset}
 
-```{r years_coding, echo=FALSE, warning=FALSE}
+#### 2018
+
+```{r years_coding_2018, echo=FALSE, warning=FALSE}
 
 order <- c("0-2 years", "3-5 years", "6-8 years", "9-11 years", "12-14 years", "15-17 years", "18-20 years", "21-23 years", "24-26 years", "27-29 years", "30 or more years")
 
@@ -160,7 +162,62 @@ plot_ly(coding_both_2018, x = ~YearsCoding, y = ~perc, type = 'bar', color = ~St
   animation_slider(yanchor="bottom",y=1,currentvalue = list(visible=F))
 ```
 
+#### 2023
 
+```{r years_coding_2023, echo=FALSE, warning=FALSE}
+discretize <- function(x){
+  if (is.na(x)) return(NA)
+  if (x >0 & x <= 2) return("0-2 years")
+  if (x >2 & x <= 5) return("3-5 years")
+  if (x >5 & x <= 8) return("6-8 years")
+  if (x >8 & x <= 11) return("9-11 years")
+  if (x >11 & x <= 14) return("12-14 years")
+  if (x >14 & x <= 17) return("15-17 years")
+  if (x >17 & x <= 20) return("18-20 years")
+  if (x >20 & x <= 23) return("21-23 years")
+  if (x >23 & x <= 26) return("24-26 years")
+  if (x >26 & x <= 29) return("27-29 years")
+  if (x >29) return("30 or more years")
+}
+
+data2023$YearsCode <- data2023$YearsCode %>%  as.numeric() %>% sapply(FUN = discretize)
+data2023$YearsCodePro <- data2023$YearsCodePro %>%  as.numeric() %>% sapply(FUN = discretize)
+
+order <- c("0-2 years", "3-5 years", "6-8 years", "9-11 years", "12-14 years", "15-17 years", "18-20 years", "21-23 years", "24-26 years", "27-29 years", "30 or more years")
+
+coding_usual_2023 <- data2023 %>%
+  select(YearsCode) %>%
+  group_by(YearsCode) %>%
+  summarise(count = n()) %>%
+  mutate(perc = round(count*100/sum(count),2)) %>%
+  drop_na()
+
+coding_usual_2023$Status <- "Total coding"
+
+coding_pro_2023 <- data2023 %>%
+  select(YearsCodePro) %>%
+  group_by(YearsCodePro) %>%
+  summarise(count = n()) %>%
+  mutate(perc = round(count*100/sum(count),2)) %>%
+  drop_na()
+
+coding_pro_2023$Status <- "Professional coding"
+colnames(coding_pro_2023)[colnames(coding_pro_2023) == "YearsCodePro"] <- "YearsCode"
+
+coding_both_2023 <- rbind(coding_usual_2023, coding_pro_2023)
+coding_both_2023 <- coding_both_2023 %>% mutate(YearsCode = factor(YearsCode, levels = order))
+
+plot_ly(coding_both_2023, x = ~YearsCode, y = ~perc, type = 'bar', color = ~Status, frame = ~Status,
+        colors = palette,
+        animation_frame = ~Status) %>%
+  layout(title = "Years of Coding Experience",
+         xaxis = list(title = "Years of Experience"),
+         yaxis = list(title = "Percentage of Respondents"),
+         showlegend = FALSE) %>%
+  animation_button(visible=F) %>%
+  animation_slider(yanchor="bottom",y=1,currentvalue = list(visible=F))
+
+```
 ### Employment status
 ```{r employment_status, echo=FALSE, warning=FALSE}
 data2018$Employment <- gsub(",", "", data2018$Employment)
