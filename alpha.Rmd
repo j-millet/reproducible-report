@@ -19,15 +19,15 @@ output:
   <hr>
 </div>  
 
-```{r setup, include=FALSE, cache=TRUE}
+```{r setup, include=FALSE, cache=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 
 library(ggplot2)
 library(plotly)
-library(dplyr)
 library(tidyr)
 library(stringr)
 library(ggpubr)
+library(dplyr)
 
 require(gridExtra)
 
@@ -54,8 +54,6 @@ dropna <- function(x) {
 > [WIP] This document is a data visualization of exploratory data analysis of the "Stack Overflow developer surveys" conducted in 2018 and 2023. We compare the different trends and shifts in the way the developers seek help with their everyday tasks. 
 
 ## Developer profile {.tabset}
-
-### Country
 
 ### Age
 
@@ -96,6 +94,16 @@ dropna <- function(x) {
   education_both$FormalEducation <- gsub("Bachelor’s degree .BA, BS, B.Eng., etc..", "Bachelor’s degree (B.A., B.S., B.Eng., etc.)", education_both$FormalEducation)
   education_both$FormalEducation <- gsub("Master’s degree .MA, MS, M.Eng., MBA, etc..", "Master’s degree (M.A., M.S., M.Eng., MBA, etc.)", education_both$FormalEducation)
   education_both$FormalEducation <- gsub("Secondary school .e.g. American high school, German Realschule or Gymnasium, etc..","Secondary school", education_both$FormalEducation)
+  
+order <- c("Primary/elementary school",
+           "Secondary school",
+           "Associate degree (A.A., A.S., etc.)",
+           "Bachelor’s degree (B.A., B.S., B.Eng., etc.)",
+           "Master’s degree (M.A., M.S., M.Eng., MBA, etc.)",
+           "Professional degree (JD, MD, Ph.D, Ed.D, etc.)")
+
+education_both <- education_both %>% mutate(FormalEducation = factor(FormalEducation, levels = order))
+
   plot_ly(education_both,
           x = ~FormalEducation,
           y = ~perc,
@@ -116,33 +124,91 @@ dropna <- function(x) {
 ### Years coding
 
 ```{r years_coding, echo=FALSE, warning=FALSE}
-coding = data2018$YearsCoding
-procoding = data2018$YearsCodingProf
 
 order <- c("0-2 years", "3-5 years", "6-8 years", "9-11 years", "12-14 years", "15-17 years", "18-20 years", "21-23 years", "24-26 years", "27-29 years", "30 or more years")
 
-coding_df <- data.frame(Category = c(coding, procoding),
-                        Type = c(rep("Usual coding", length(coding)), rep("Professional coding", length(procoding))))
+coding_usual_2018 <- data2018 %>%
+  select(YearsCoding) %>%
+  group_by(YearsCoding) %>%
+  summarise(count = n()) %>%
+  mutate(perc = round(count*100/sum(count),2)) %>%
+  drop_na()
 
-coding_counts <- coding_df %>%
-  group_by(Category, Type) %>%
-  summarise(count = n(), .groups = "drop_last") %>%
-  mutate(Category = factor(Category, levels = order))
+coding_usual_2018$Status <- "Total coding"
+coding_pro_2018 <- data2018 %>%
+  select(YearsCodingProf) %>%
+  group_by(YearsCodingProf) %>%
+  summarise(count = n()) %>%
+  mutate(perc = round(count*100/sum(count),2)) %>%
+  drop_na()
 
-plot_ly(coding_counts, x = ~Category, y = ~count, type = 'bar', color = ~Type, frame = ~Type,
+coding_pro_2018$Status <- "Professional coding"
+colnames(coding_pro_2018)[colnames(coding_pro_2018) == "YearsCodingProf"] <- "YearsCoding"
+
+coding_both_2018 <- rbind(coding_usual_2018, coding_pro_2018)
+coding_both_2018 <- coding_both_2018 %>% mutate(YearsCoding = factor(YearsCoding, levels = order))
+
+
+plot_ly(coding_both_2018, x = ~YearsCoding, y = ~perc, type = 'bar', color = ~Status, frame = ~Status,
         colors = palette,
-        animation_frame = ~Type) %>%
+        animation_frame = ~Status) %>%
   layout(title = "Years of Coding Experience",
          xaxis = list(title = "Years of Experience"),
-         yaxis = list(title = "Count"),
-         showlegend = FALSE)
+         yaxis = list(title = "Percentage of Respondents"),
+         showlegend = FALSE) %>%
+  animation_button(visible=F) %>%
+  animation_slider(yanchor="bottom",y=1,currentvalue = list(visible=F))
 ```
 
-### Developer type
 
 ### Employment status
+```{r employment_status, echo=FALSE, warning=FALSE}
+data2018$Employment <- gsub(",", "", data2018$Employment)
+employment_2018 <- data2018 %>%
+  select(Employment) %>%
+  separate_rows(Employment,sep=";") %>%
+  group_by(Employment) %>%
+  summarise(count = n()) %>%
+  mutate(perc = round(count*100/sum(count),2)) %>%
+  drop_na()
 
-### Developer
+employment_2018$Year <- "2018"
+
+data2023$Employment <- gsub(",", "", data2023$Employment)
+employment_2023 <- data2023 %>%
+  select(Employment) %>%
+  separate_rows(Employment,sep=";") %>%
+  group_by(Employment) %>%
+  filter(Employment %in% c("Employed full-time",
+                           "Employed part-time",
+                           "Independent contractor freelancer or self-employed",
+                           "Not employed and not looking for work",
+                           "Not employed but looking for work",
+                           "Retired")) %>%
+  summarise(count = n()) %>%
+  mutate(perc = round(count*100/sum(count),2)) %>%
+  drop_na()
+
+employment_2023$Year <- "2023"
+
+employment_both <- rbind(employment_2018, employment_2023)
+
+plot_ly(employment_both,
+        x = ~Employment,
+        y = ~perc,
+        type = 'bar',
+        color = ~Year,
+        frame = ~Year,
+        colors = palette,
+        animation_frame = ~Year) %>%
+  layout(title = "Employment",
+         xaxis = list(title = "Employment Status"),
+         yaxis = list(title = "Percentage of Respondents"),
+         hovermode = "x",
+         showlegend = FALSE)%>% 
+  animation_button(visible=F) %>%
+  animation_slider(yanchor="bottom",y=1,currentvalue = list(visible=F))
+```
 
 ## Stack Overflow visits frequency over time 
 
@@ -231,17 +297,6 @@ ggplotly(plot_AI_use,tooltip = c("text"))
 > The most popular programming languages among developers in 2018 and 2023 are shown below. The popularity of programming languages has shifted over time. 
 
 ```{r popular_languages, echo=FALSE, message=FALSE, warning=FALSE, out.width="100%"}
-inputPanel(
-  selectInput("top_or_bottom_languages", "Ranking", c("Top 10", "Bottom 10")),
-)
-renderPlot({
-do_top_languages= (input$top_or_bottom_languages == "Top 10")
-mult_languages <- 1
-ylim_languages <- 0.075
-if(do_top_languages){
-  mult_languages <- -mult_languages
-  ylim_languages <- 0.75
-}
 
 languages_2018 <- data2018 %>%
   select(LanguageWorkedWith) %>%
@@ -249,7 +304,7 @@ languages_2018 <- data2018 %>%
   group_by(LanguageWorkedWith) %>%
   summarise(count = n()) %>%
   mutate(freq = count / length(dropna(data2018$LanguageWorkedWith))) %>%
-  drop_na()
+  drop_na()%>% arrange(desc(freq)) %>% head(10)
 
 languages_2023 <- data2023 %>%
   select(LanguageWorkedWith) %>%
@@ -257,30 +312,22 @@ languages_2023 <- data2023 %>%
   group_by(LanguageWorkedWith) %>%
   summarise(count = n()) %>%
   mutate(freq = count / length(dropna(data2023$LanguageWorkedWith))) %>%
-  drop_na()
+  drop_na()%>% arrange(desc(freq)) %>% head(10)
 
-if (do_top_languages) {
-    languages_2018 <- languages_2018 %>% arrange(desc(freq)) %>% head(10)
-    languages_2023 <- languages_2023 %>% arrange(desc(freq)) %>% head(10)
-  } else {
-    languages_2018 <- languages_2018 %>% arrange(freq) %>% head(10)
-    languages_2023 <- languages_2023 %>% arrange(freq) %>% head(10)
-  }
-
-plot2018 <- ggplot(languages_2018, aes(x=reorder(LanguageWorkedWith, mult_languages*freq), y=freq)) +
+plot2018 <- ggplot(languages_2018, aes(x=reorder(LanguageWorkedWith, -freq), y=freq)) +
   geom_bar(stat="identity", fill=palette[1]) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
-  scale_y_continuous(breaks = seq(0, ylim_languages, ylim_languages/3)) + 
-  coord_cartesian(ylim = c(0, ylim_languages)) + 
+  scale_y_continuous(breaks = seq(0, 0.75, 0.25)) + 
+  coord_cartesian(ylim = c(0, 0.75)) + 
   labs(title = "2018",
        x = "Language",
        y = "Proportion of developers using")
 
-plot2023 <- ggplot(languages_2023, aes(x=reorder(LanguageWorkedWith, mult_languages*freq), y=freq)) +
+plot2023 <- ggplot(languages_2023, aes(x=reorder(LanguageWorkedWith, -freq), y=freq)) +
   geom_bar(stat="identity", fill=palette[2]) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
-  scale_y_continuous(breaks = seq(0, ylim_languages, ylim_languages/3)) + 
-  coord_cartesian(ylim = c(0, ylim_languages)) + 
+  scale_y_continuous(breaks = seq(0, 0.75, 0.25)) + 
+  coord_cartesian(ylim = c(0, 0.75)) + 
   labs(title = "2023",
        x = "Language",
        y = "") 
@@ -291,14 +338,12 @@ grid.arrange(
   plot2023, 
   ncol=2,
   top=text_grob(
-    paste(input$top_or_bottom_languages," programming languages in 2018 and 2023"), 
+    paste("Top 10 programming languages in 2018 and 2023"), 
     color="black", 
     face="bold", 
     size=18
     )
   )
-
-})
 ```
 
 ## Wages comparison between 2018 and 2023 by developer positions. {.tabset}
@@ -308,31 +353,16 @@ grid.arrange(
 ### Year 2018 
 
 ```{r devtype_profits_2018,echo=FALSE,message=FALSE, warning=FALSE, out.width="100%"}
-inputPanel(
-  selectInput("top_or_bottom_2018", "Ranking", c("Top 10", "Bottom 10")),
-)
-renderPlotly({
 devtype_median_salary_2018 <- data2018 %>%
   select(DevType,ConvertedSalary) %>%
   separate_rows(DevType, sep = ";") %>%
   drop_na() %>%
   group_by(DevType) %>%
-  summarise(median_salary = round(median(ConvertedSalary, na.rm = TRUE),2))
-
-do_top_2018 = (input$top_or_bottom_2018 == "Top 10")
-mult_2018 <- 1
-if(do_top_2018){
-  mult_2018 <- -mult_2018
-}
-if (do_top_2018) {
-    devtype_median_salary_2018 <- devtype_median_salary_2018 %>% arrange(desc(median_salary)) %>% head(10)
-  } else {
-    devtype_median_salary_2018 <- devtype_median_salary_2018 %>% arrange(median_salary) %>% head(10)
-  }
+  summarise(median_salary = round(median(ConvertedSalary, na.rm = TRUE),2))%>% arrange(desc(median_salary)) %>% head(10)
 
 
 plot_salary_2018 <- ggplot(devtype_median_salary_2018, 
-                           aes(x=reorder(DevType, mult_2018*median_salary), 
+                           aes(x=reorder(DevType, -median_salary), 
                                y=median_salary,
                                text=paste('Yearly Median: $',formatC(median_salary, big.mark=',', format = 'f')))) +
   geom_bar(stat="identity", fill=palette[1]) +
@@ -344,36 +374,21 @@ plot_salary_2018 <- ggplot(devtype_median_salary_2018,
 
 
 ggplotly(plot_salary_2018,tooltip = c("text"))
-})
 ```
 
 ### Year 2023
 
 ```{r devtype_profits_2023,echo=FALSE,message=FALSE, warning=FALSE, out.width="100%"}
-inputPanel(
-  selectInput("top_or_bottom_2023", "Ranking", c("Top 10", "Bottom 10")),
-)
-renderPlotly({
+
 devtype_median_salary_2023 <- data2023 %>%
   select(DevType,ConvertedCompYearly) %>%
   separate_rows(DevType, sep = ";") %>%
   drop_na() %>%
   group_by(DevType) %>%
-  summarise(median_salary = round(median(ConvertedCompYearly, na.rm = TRUE),2))
-
-do_top_2023 = (input$top_or_bottom_2023 == "Top 10")
-mult_2023 <- 1
-if(do_top_2023){
-  mult_2023 <- -mult_2023
-}
-if (do_top_2023) {
-    devtype_median_salary_2023 <- devtype_median_salary_2023 %>% arrange(desc(median_salary)) %>% head(10)
-  } else {
-    devtype_median_salary_2023 <- devtype_median_salary_2023 %>% arrange(median_salary) %>% head(10)
-  }
+  summarise(median_salary = round(median(ConvertedCompYearly, na.rm = TRUE),2))%>% arrange(desc(median_salary)) %>% head(10)
 
 plot_salary_2023 <- ggplot(devtype_median_salary_2023, 
-                           aes(x=reorder(DevType, mult_2023*median_salary), 
+                           aes(x=reorder(DevType, -median_salary), 
                                y=median_salary,
                                text=paste('Yearly Median: $',formatC(median_salary, big.mark=',', format = 'f')))) +
   geom_bar(stat="identity", fill=palette[2]) +
@@ -384,7 +399,6 @@ plot_salary_2023 <- ggplot(devtype_median_salary_2023,
        y = "Median Salary")
 
 ggplotly(plot_salary_2023,tooltip = c("text"))
-})
 ```
 
 
