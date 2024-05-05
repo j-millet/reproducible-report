@@ -471,14 +471,14 @@ devtype_median_salary_2018 <- data2018 %>%
   separate_rows(DevType, sep = ";") %>%
   na.omit() %>%
   group_by(DevType) %>%
-  summarise(median_salary = round(median(ConvertedSalary, na.rm = TRUE),2))%>% arrange(desc(median_salary)) %>% head(10)
+  summarise(median_salary = round(median(ConvertedSalary, na.rm = TRUE),0))%>% arrange(desc(median_salary)) %>% head(10)
 
 devtype_median_salary_2018$DevType <- gsub("C-suite executive .CEO, CTO, etc..","C-Suite executive", devtype_median_salary_2018$DevType)
 
 plot_salary_2018 <- ggplot(devtype_median_salary_2018, 
                            aes(x=reorder(DevType, -median_salary), 
                                y=median_salary,
-                               text=paste('Yearly Median: $',formatC(median_salary, big.mark=',', format = 'f')))) +
+                               text=paste('Yearly Median: $',format(median_salary, big.mark=',', nsmall=0)))) +
   geom_bar(stat="identity", fill=palette[1]) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
   scale_y_continuous(labels = scales::dollar) +
@@ -500,14 +500,14 @@ devtype_median_salary_2023 <- data2023 %>%
   separate_rows(DevType, sep = ";") %>%
   na.omit() %>%
   group_by(DevType) %>%
-  summarise(median_salary = round(median(ConvertedCompYearly, na.rm = TRUE),2))%>% arrange(desc(median_salary)) %>% head(10)
+  summarise(median_salary = round(median(ConvertedCompYearly, na.rm = TRUE),0))%>% arrange(desc(median_salary)) %>% head(10)
 
 devtype_median_salary_2023$DevType <- gsub("C-Suite executive .CEO, CTO, etc..","C-Suite executive", devtype_median_salary_2023$DevType)
 
 plot_salary_2023 <- ggplot(devtype_median_salary_2023, 
                            aes(x=reorder(DevType, -median_salary), 
                                y=median_salary,
-                               text=paste('Yearly Median: $',formatC(median_salary, big.mark=',', format = 'f')))) +
+                               text=paste('Yearly Median: $',format(median_salary, big.mark=',',nsmall=0)))) +
   geom_bar(stat="identity", fill=palette[2]) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
   scale_y_continuous(labels = scales::dollar) +
