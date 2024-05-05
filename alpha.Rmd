@@ -462,7 +462,7 @@ grid.arrange(
 
 ### Year 2018 
 
-```{r devtype_profits_2018,echo=FALSE,message=FALSE, warning=FALSE, out.width="100%"}
+```{r devtype_profits_2018,echo=FALSE,message=FALSE, warning=FALSE, out.width="100%",out.height="70%"}
 devtype_median_salary_2018 <- data2018 %>%
   select(DevType,ConvertedSalary) %>%
   separate_rows(DevType, sep = ";") %>%
@@ -470,7 +470,7 @@ devtype_median_salary_2018 <- data2018 %>%
   group_by(DevType) %>%
   summarise(median_salary = round(median(ConvertedSalary, na.rm = TRUE),2))%>% arrange(desc(median_salary)) %>% head(10)
 
-
+devtype_median_salary_2018$DevType <- gsub("C-Suite executive .CEO, CTO, etc..","C-Suite executive", devtype_median_salary_2018$DevType)
 plot_salary_2018 <- ggplot(devtype_median_salary_2018, 
                            aes(x=reorder(DevType, -median_salary), 
                                y=median_salary,
@@ -478,6 +478,7 @@ plot_salary_2018 <- ggplot(devtype_median_salary_2018,
   geom_bar(stat="identity", fill=palette[1]) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
   scale_y_continuous(labels = scales::dollar) +
+  coord_cartesian(ylim = c(30000, 130000)) + 
   labs(title = "",
        x = "Developer Type",
        y = "Median Salary")
@@ -488,7 +489,7 @@ ggplotly(plot_salary_2018,tooltip = c("text"))
 
 ### Year 2023
 
-```{r devtype_profits_2023,echo=FALSE,message=FALSE, warning=FALSE, out.width="100%"}
+```{r devtype_profits_2023,echo=FALSE,message=FALSE, warning=FALSE, out.width="100%",out.height="70%"}
 
 devtype_median_salary_2023 <- data2023 %>%
   select(DevType,ConvertedCompYearly) %>%
@@ -496,7 +497,7 @@ devtype_median_salary_2023 <- data2023 %>%
   na.omit() %>%
   group_by(DevType) %>%
   summarise(median_salary = round(median(ConvertedCompYearly, na.rm = TRUE),2))%>% arrange(desc(median_salary)) %>% head(10)
-
+devtype_median_salary_2023$DevType <- gsub("C-Suite executive .CEO, CTO, etc..","C-Suite executive", devtype_median_salary_2023$DevType)
 plot_salary_2023 <- ggplot(devtype_median_salary_2023, 
                            aes(x=reorder(DevType, -median_salary), 
                                y=median_salary,
@@ -504,6 +505,7 @@ plot_salary_2023 <- ggplot(devtype_median_salary_2023,
   geom_bar(stat="identity", fill=palette[2]) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
   scale_y_continuous(labels = scales::dollar) +
+  coord_cartesian(ylim = c(30000, 130000)) + 
   labs(title = "",
        x = "Developer Type",
        y = "Median Salary")
