@@ -49,7 +49,7 @@ data2023$DevType <- gsub("Senior Executive .C-Suite, VP, etc..", "C-Suite execut
 
 ```
 
-> This document is a data visualization of exploratory data analysis of the "Stack Overflow developer surveys" conducted in 2018 and 2023. The main objective of this analysis is to compare the profiles of developers over the years and identify different trends among them. We'll also discover the difference in most popular tools and programming languages.
+> This document is a data visualization of exploratory data analysis of the “Stack Overflow developer surveys” conducted in 2018 and 2023. The main objective of this analysis is to compare the profiles of developers over the years and identify different trends among them. We’ll also discover the differences in the most popular tools and programming languages.
 
 ## Developer profile {.tabset}
 
@@ -57,7 +57,7 @@ data2023$DevType <- gsub("Senior Executive .C-Suite, VP, etc..", "C-Suite execut
 
 ### Age
 
-Here we can see a sizeable decrease in 25-34 years old group while other groups see a slight increase. However, the field is still dominated by people in their 20s and 30s.
+Here we can see a sizeable decrease in  25-34-year-old group while other groups see a slight increase. However, the field is still dominated by people in their 20s and 30s.
 
 ```{r age, echo=FALSE, warning=FALSE, out.width="100%"}
 age_2018 <- data2018 %>%
@@ -340,7 +340,7 @@ plot_ly(employment_both,
 
 ## Stack Overflow visits frequency over time 
 
-> The drastic decline in visit frequency on Stack Overflow is obvious. While it still continues to be a relevant website for developers, the rise of the likes of Github Copilot and ChatGPT clearly changed the way people seek help with their projects.
+> The drastic decline in visit frequency on Stack Overflow is obvious. While it still continues to be a relevant website for developers, the rise of the likes of GitHub  Copilot and ChatGPT clearly changed the way people seek help with their projects.
 
 ```{r SO_visit_freq, echo=FALSE, out.width="100%"}
 x_order <- c("Multiple times per day", "Daily or almost daily", "A few times per week", "A few times per month or weekly", "Less than once per month or monthly")
@@ -374,7 +374,7 @@ plot_visit_freq <- ggplot(grouped_both, aes(x=StackOverflowVisit, y=perc, fill=Y
 ggplotly(plot_visit_freq,tooltip = c("text"))
 ```
 
-## AI-Powered tools usage among respondents in 2023
+## AI-powered tools usage among respondents in 2023
 
 > Developers quickly adopted their new AI tools. Among them, Github Copilot reigns supreme, even though there are free alternatives to it. The top 5 AI-powered tools used by developers in 2023 are shown below.
 
@@ -412,8 +412,8 @@ AI_both <- AI_both %>% mutate(perc = freq*100)
 plot_AI_use <- ggplot(AI_both, aes(x=reorder(Tech,-perc), y=perc, fill=State, text=paste(Percentage))) +
   geom_bar(stat="identity", position="dodge") +
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
-  labs(title = "Top 5 AI-Powered Development Tools In 2023",
-       x = "AI-Powered Tool",
+  labs(title = "Top 5 AI-powered Development Tools In 2023",
+       x = "AI-powered Tool",
        y = "Percentage of respondents",
        fill = "State") + 
   scale_fill_manual(values=palette)
@@ -478,7 +478,7 @@ grid.arrange(
 
 ## Wages comparison between 2018 and 2023 by developer positions. {.tabset}
 
-> The wages of developers have considerable increased over time across all positions. C-suite executives, for example, have seen a sizeable increase in compensation. The wages of developers in 2018 and 2023 are compared below. 
+> The wages of developers have considerably increased over time across all positions. C-suite executives, for example, have seen a sizeable increase in compensation. The wages of developers in 2018 and 2023 are compared below. 
 
 ### Year 2018 
 
@@ -538,4 +538,4 @@ ggplotly(plot_salary_2023,tooltip = c("text"))
 
 ## Summary
 
-Over the last 5 years, the landscape of IT developers has significantly changed. Stack Overflow is no longer the go-to help for every bug encountered. The emergence of AI assistants has clearly changed the way people write code and seek help. Among AI assistants, Github Copilot is clearly the leader. Popular languages have mostly remained the same, but Python and TypeScript have registered serious increases. Another important difference is the large increase in compensation for developers across the board. There's also been a sizeable increase in freelancers and self-taught programmers. It's a great time to be working in tech.
+> Over the last 5 years, the landscape of IT developers has significantly changed. Stack Overflow is no longer the go-to help for every bug encountered. The emergence of AI assistants has clearly changed the way people write code and seek help. Among AI assistants, Github Copilot is clearly the leader. Popular languages have mostly remained the same, but Python and TypeScript have registered serious increases. Another important difference is the large increase in compensation for developers across the board. There's also been a sizeable increase in freelancers and self-taught programmers. It's a great time to be working in tech.
